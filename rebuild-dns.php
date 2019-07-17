@@ -92,7 +92,7 @@ class AutoDNS {
 	}
 	
 	function writeIPv6Hosts() {
-		echo "Creating IPv6 file...".PHP_EOL
+		echo "Creating IPv6 file...".PHP_EOL;
 		$file = NULL;
 		foreach($this->values as $key => $value) {
 			$file .= $value[3]." ";
