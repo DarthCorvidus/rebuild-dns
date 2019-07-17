@@ -1,0 +1,17 @@
+;Target file for IPv4 hosts as requested by dnsmasq
+ipv4 = 
+
+;Target file for IPv6 hosts as requested by dnsmasq
+ipv6 = 
+
+;MAC-lookup table for dnsmasq
+dhcp = 
+
+;Table containing MAC, IPv4 address and names.
+mac = 
+
+;device from which to determine the current IPv6 address
+device = 
+
+;file which will be used to store the current IPv6 address 
+currentAddress = 
