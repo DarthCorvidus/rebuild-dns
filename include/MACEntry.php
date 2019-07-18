@@ -1,4 +1,9 @@
 <?php
+/**
+ * @copyright (c) 2019, Claus-Christoph Küthe
+ * @author Claus-Christoph Küthe <lnkbackup@vm01.telton.de>
+ * @license GPLv3
+ */
 class MACEntry {
 	private $mac;
 	private $ip;
