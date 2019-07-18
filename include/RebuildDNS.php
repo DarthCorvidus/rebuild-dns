@@ -1,7 +1,7 @@
 <?php
 /**
  * @copyright (c) 2019, Claus-Christoph Küthe
- * @author Claus-Christoph Küthe <lnkbackup@vm01.telton.de>
+ * @author Claus-Christoph Küthe <rebuild-dns@vm01.telton.de>
  * @license GPLv3
  */
 require_once __DIR__.'/MACTable.php';
@@ -14,7 +14,6 @@ class RebuildDNS {
 	function __construct(array $argv, Config $config) {
 		$this->scriptPath = __DIR__;
 		$this->config = $config;
-		$this->longest = array_fill(0, 5, 0);
 		$this->mac = new MACTable($this->config->getMAC());
 		$this->ipv6 = $this->determineIP($this->config->getDevice());
 		echo "Adress ".$this->config->getDevice().": ".$this->ipv6.PHP_EOL;
