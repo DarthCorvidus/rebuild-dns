@@ -1,4 +1,9 @@
 <?php
+/**
+ * @copyright (c) 2019, Claus-Christoph Küthe
+ * @author Claus-Christoph Küthe <rebuild-dns@vm01.telton.de>
+ * @license GPLv3
+ */
 class Config {
 	private $parsed;
 	function __construct($filename) {
@@ -17,4 +22,25 @@ class Config {
 	function getParsed(): array {
 		return $this->parsed;
 	}
+	
+	function getIPv4(): string {
+		return $this->parsed["ipv4"];
+	}
+	
+	function getIPv6(): string {
+		return $this->parsed["ipv6"];
+	}
+
+	function getDHCP(): string {
+		return $this->parsed["dhcp"];
+	}
+
+	function getMAC(): string {
+		return $this->parsed["mac"];
+	}
+
+	function getDevice(): string {
+		return $this->parsed["device"];
+	}
+	
 }
