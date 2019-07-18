@@ -8,6 +8,7 @@ class AutoDNS {
 	private $scriptPath;
 	private $config;
 	private $mac;
+	private $force;
 	function __construct(array $argv) {
 		$this->scriptPath = __DIR__;
 		$this->config = parse_ini_file($this->scriptPath."/config.ini");
@@ -16,7 +17,7 @@ class AutoDNS {
 		$this->ipv6 = $this->determineIP($this->config["device"]);
 		if(file_exists($this->config["currentAddress"]) && file_get_contents($this->config["currentAddress"])==$this->ipv6 && !in_array("--force", $argv)) {
 			echo "Nothing to do, use --force to rewrite addresses.".PHP_EOL;
-			die();
+			#die();
 		}
 
 		if(!file_exists($this->config["currentAddress"])) {
@@ -93,40 +94,46 @@ class AutoDNS {
 	return implode(":", $ipv6);
 	}
 	
+	private function replaceFile($replaceMessage, $skipMessage, $filename, $contents) {
+		$md5file = md5_file($filename);
+		$md5content = md5($contents);
+		if($md5content == $md5file) {
+			echo $skipMessage.PHP_EOL;
+			return;
+		} else {
+			echo $replaceMessage.PHP_EOL;
+			echo $contents;
+			file_put_contents($filename, $contents);
+		}
+	}
+	
 	function writeIPv6Hosts() {
-		echo "Creating IPv6 file...".PHP_EOL;
 		$file = NULL;
 		foreach($this->values as $key => $value) {
 			$file .= $value[3]." ";
 			$file .= str_pad($value[2], $this->longest[2], " ")." ";
 			$file .= str_pad($value[4], $this->longest[4], " ").PHP_EOL;
 		}
-		echo $file;
-		file_put_contents($this->config["ipv6"], $file);
-		
+		$this->replaceFile("Writing IPv6 file", "Skipping IPv6 file", $this->config["ipv6"], $file);
 	}
 	
 	function writeIPv4Hosts() {
-		echo "Creating IPv4 file...".PHP_EOL;
 		$file = NULL;
 		foreach($this->values as $key => $value) {
 			$file .= $value[1]." ";
 			$file .= str_pad($value[2], $this->longest[2], " ")." ";
 			$file .= str_pad($value[4], $this->longest[4], " ").PHP_EOL;
 		}
-		echo $file;
-		file_put_contents($this->config["ipv4"], $file);
+		$this->replaceFile("Writing IPv4 file", "Skipping IPv4 file", $this->config["ipv4"], $file);
 	}
 
 	function writeMAC() {
-		echo "Creating MAC table...".PHP_EOL;
 		$file = NULL;
 		for($i=0;$i<$this->mac->getEntries();$i++) {
 			$entry = $this->mac->getEntry($i);
 			$file .= $entry->getMAC().",".$entry->getIPv4().PHP_EOL;
 		}
-		echo $file;
-		file_put_contents($this->config["dhcp"], $file);
+		$this->replaceFile("Writing MAC table", "Skipping MAC table", $this->config["dhcp"], $file);
 	}
 	function run() {
 		$this->writeIPv6Hosts();
