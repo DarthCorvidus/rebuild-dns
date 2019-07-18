@@ -7,12 +7,10 @@
 require_once __DIR__.'/MACTable.php';
 class RebuildDNS {
 	private $ipv6;
-	private $values;
-	private $longest;
 	private $scriptPath;
 	private $config;
 	private $mac;
-	private $force;
+	private $force = false;
 	function __construct(array $argv, Config $config) {
 		$this->scriptPath = __DIR__;
 		$this->config = $config;
@@ -22,25 +20,6 @@ class RebuildDNS {
 		echo "Adress ".$this->config->getDevice().": ".$this->ipv6.PHP_EOL;
 		echo "Prefix: ".$this->getPrefix($this->ipv6).PHP_EOL;
 		
-		$handle = fopen($this->config->getMAC(), "r");
-		while($line = fgets($handle)) {
-			$trimmed = trim($line);
-			if($trimmed==NULL) {
-				continue;
-			}
-			$split = preg_split("/\s+/", $trimmed);
-			$split[3] = self::getPrefix($this->ipv6).":".self::mac2ip($split[0]);
-			$split[4] = substr($split[2], 0, strpos($split[2], "."));
-			$this->values[] = $split;
-		}
-		fclose($handle);
-		foreach($this->values as $key => $values) {
-			foreach($values as $subkey => $value) {
-				if($this->longest[$subkey] < strlen($value)) {
-					$this->longest[$subkey] = strlen($value);
-				}
-			}
-		}
 	}
 	
 	function determineIP($device): string {
@@ -64,31 +43,10 @@ class RebuildDNS {
 		return implode(":", array_slice($exp, 0, 4));
 	}
 
-	static function mac2ip($mac) {
-		$exp = explode(":", strtolower($mac));
-		$first = str_pad(decbin(hexdec($exp[0])), 8, 0, STR_PAD_LEFT);
-		#echo $first.PHP_EOL;
-		$first[6] = ($first[6]==1?0:1);
-		#echo $first.PHP_EOL;
-		$exp[0] = str_pad(dechex(bindec($first)), 2, 0, STR_PAD_LEFT);
-		$final = array();
-		foreach($exp as $key => $value) {
-			if($key==3) {
-				$final[] = "ff";
-				$final[] = "fe";
-			}
-			$final[] = $value;
-		}
-		for($i=0;$i<count($final);$i = $i+2) {
-			$ipv6[] = $final[$i].$final[$i+1];
-		}
-	return implode(":", $ipv6);
-	}
-	
 	private function replaceFile($replaceMessage, $skipMessage, $filename, $contents) {
 		$md5file = md5_file($filename);
 		$md5content = md5($contents);
-		if($md5content == $md5file) {
+		if($md5content == $md5file && $this->force == FALSE) {
 			echo $skipMessage.PHP_EOL;
 			return;
 		} else {
@@ -100,20 +58,22 @@ class RebuildDNS {
 	
 	function writeIPv6Hosts() {
 		$file = NULL;
-		foreach($this->values as $key => $value) {
-			$file .= $value[3]." ";
-			$file .= str_pad($value[2], $this->longest[2], " ")." ";
-			$file .= str_pad($value[4], $this->longest[4], " ").PHP_EOL;
+		for($i=0;$i<$this->mac->getEntries();$i++) {
+			$entry = $this->mac->getEntry($i);
+			$file .= $entry->getIPv6($this->getPrefix($this->ipv6))." ";
+			$file .= str_pad($entry->getLongName(), $this->mac->getLongest(MACTable::LONG), " ")." ";
+			$file .= $entry->getShortName()." ".PHP_EOL;
 		}
 		$this->replaceFile("Writing IPv6 file", "Skipping IPv6 file", $this->config->getIPv6(), $file);
 	}
 	
 	function writeIPv4Hosts() {
 		$file = NULL;
-		foreach($this->values as $key => $value) {
-			$file .= $value[1]." ";
-			$file .= str_pad($value[2], $this->longest[2], " ")." ";
-			$file .= str_pad($value[4], $this->longest[4], " ").PHP_EOL;
+		for($i=0;$i<$this->mac->getEntries();$i++) {
+			$entry = $this->mac->getEntry($i);
+			$file .= str_pad($entry->getIPv4(), $this->mac->getLongest(MACTable::IP), " ")." ";
+			$file .= str_pad($entry->getLongName(), $this->mac->getLongest(MACTable::LONG), " ")." ";
+			$file .= $entry->getShortName()." ".PHP_EOL;
 		}
 		$this->replaceFile("Writing IPv4 file", "Skipping IPv4 file", $this->config->getIPv4(), $file);
 	}
