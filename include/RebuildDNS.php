@@ -13,9 +13,9 @@ class RebuildDNS {
 	private $config;
 	private $mac;
 	private $force;
-	function __construct(array $argv) {
+	function __construct(array $argv, Config $config) {
 		$this->scriptPath = __DIR__;
-		$this->config = parse_ini_file($this->scriptPath."/config.ini");
+		$this->config = $config->getParsed();
 		$this->longest = array_fill(0, 5, 0);
 		$this->mac = new MACTable($this->config["mac"]);
 		$this->ipv6 = $this->determineIP($this->config["device"]);
