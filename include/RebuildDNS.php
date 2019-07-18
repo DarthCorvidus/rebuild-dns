@@ -15,27 +15,14 @@ class RebuildDNS {
 	private $force;
 	function __construct(array $argv, Config $config) {
 		$this->scriptPath = __DIR__;
-		$this->config = $config->getParsed();
+		$this->config = $config;
 		$this->longest = array_fill(0, 5, 0);
-		$this->mac = new MACTable($this->config["mac"]);
-		$this->ipv6 = $this->determineIP($this->config["device"]);
-		if(file_exists($this->config["currentAddress"]) && file_get_contents($this->config["currentAddress"])==$this->ipv6 && !in_array("--force", $argv)) {
-			echo "Nothing to do, use --force to rewrite addresses.".PHP_EOL;
-			#die();
-		}
-
-		if(!file_exists($this->config["currentAddress"])) {
-			file_put_contents($this->config["currentAddress"], $this->ipv6);
-		}
-
-		if(file_get_contents($this->config["currentAddress"])!=$this->ipv6) {
-			file_put_contents($this->config["currentAddress"], $this->ipv6);
-		}
-		
-		echo "Adress ".$this->config["device"].": ".$this->ipv6.PHP_EOL;
+		$this->mac = new MACTable($this->config->getMAC());
+		$this->ipv6 = $this->determineIP($this->config->getDevice());
+		echo "Adress ".$this->config->getDevice().": ".$this->ipv6.PHP_EOL;
 		echo "Prefix: ".$this->getPrefix($this->ipv6).PHP_EOL;
 		
-		$handle = fopen($this->config["mac"], "r");
+		$handle = fopen($this->config->getMAC(), "r");
 		while($line = fgets($handle)) {
 			$trimmed = trim($line);
 			if($trimmed==NULL) {
@@ -118,7 +105,7 @@ class RebuildDNS {
 			$file .= str_pad($value[2], $this->longest[2], " ")." ";
 			$file .= str_pad($value[4], $this->longest[4], " ").PHP_EOL;
 		}
-		$this->replaceFile("Writing IPv6 file", "Skipping IPv6 file", $this->config["ipv6"], $file);
+		$this->replaceFile("Writing IPv6 file", "Skipping IPv6 file", $this->config->getIPv6(), $file);
 	}
 	
 	function writeIPv4Hosts() {
@@ -128,7 +115,7 @@ class RebuildDNS {
 			$file .= str_pad($value[2], $this->longest[2], " ")." ";
 			$file .= str_pad($value[4], $this->longest[4], " ").PHP_EOL;
 		}
-		$this->replaceFile("Writing IPv4 file", "Skipping IPv4 file", $this->config["ipv4"], $file);
+		$this->replaceFile("Writing IPv4 file", "Skipping IPv4 file", $this->config->getIPv4(), $file);
 	}
 
 	function writeMAC() {
@@ -137,7 +124,7 @@ class RebuildDNS {
 			$entry = $this->mac->getEntry($i);
 			$file .= $entry->getMAC().",".$entry->getIPv4().PHP_EOL;
 		}
-		$this->replaceFile("Writing MAC table", "Skipping MAC table", $this->config["dhcp"], $file);
+		$this->replaceFile("Writing MAC table", "Skipping MAC table", $this->config->getDHCP(), $file);
 	}
 	function run() {
 		$this->writeIPv6Hosts();
