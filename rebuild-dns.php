@@ -1,16 +1,18 @@
 #!/usr/bin/php
 <?php
-
+require_once __DIR__.'/include/MACTable.php';
 class AutoDNS {
 	private $ipv6;
 	private $values;
 	private $longest;
 	private $scriptPath;
 	private $config;
+	private $mac;
 	function __construct(array $argv) {
 		$this->scriptPath = __DIR__;
 		$this->config = parse_ini_file($this->scriptPath."/config.ini");
 		$this->longest = array_fill(0, 5, 0);
+		$this->mac = new MACTable($this->config["mac"]);
 		$this->ipv6 = $this->determineIP($this->config["device"]);
 		if(file_exists($this->config["currentAddress"]) && file_get_contents($this->config["currentAddress"])==$this->ipv6 && !in_array("--force", $argv)) {
 			echo "Nothing to do, use --force to rewrite addresses.".PHP_EOL;
@@ -119,8 +121,9 @@ class AutoDNS {
 	function writeMAC() {
 		echo "Creating MAC table...".PHP_EOL;
 		$file = NULL;
-		foreach($this->values as $key => $value) {
-			$file .= $value[0].",".$value[1].PHP_EOL;
+		for($i=0;$i<$this->mac->getEntries();$i++) {
+			$entry = $this->mac->getEntry($i);
+			$file .= $entry->getMAC().",".$entry->getIPv4().PHP_EOL;
 		}
 		echo $file;
 		file_put_contents($this->config["dhcp"], $file);
