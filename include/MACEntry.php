@@ -10,4 +10,20 @@ class MACEntry {
 		$this->longName = $array[2];
 		$this->shortName = $array[3];
 	}
+	
+	public function getMAC():string {
+		return $this->mac;
+	}
+	
+	public function getIPv4():string {
+		return $this->ip;
+	}
+
+	public function getLongName():string {
+		return $this->longName;
+	}
+	
+	public function getShortName():string {
+		return $this->shortName;
+	}
 }
