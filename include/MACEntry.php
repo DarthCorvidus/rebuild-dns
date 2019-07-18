@@ -10,10 +10,10 @@ class MACEntry {
 	private $longName;
 	private $shortName;
 	function __construct(array $array) {
-		$this->mac = strtolower($array[0]);
-		$this->ip = $array[1];
-		$this->longName = $array[2];
-		$this->shortName = $array[3];
+		$this->mac = strtolower($array[MACTable::MAC]);
+		$this->ip = $array[MACTable::IP];
+		$this->longName = $array[MACTable::LONG];
+		$this->shortName = $array[MACTable::SHORT];
 	}
 	
 	public function getMAC():string {
