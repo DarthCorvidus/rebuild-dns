@@ -4,7 +4,6 @@
  * @author Claus-Christoph Küthe <rebuild-dns@vm01.telton.de>
  * @license GPLv3
  */
-require_once __DIR__.'/MACTable.php';
 class RebuildDNS {
 	private $ipv6;
 	private $scriptPath;
